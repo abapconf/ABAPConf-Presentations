@@ -1,0 +1,216 @@
+class ZCX_CAP_ADF definition
+  public
+  inheriting from CX_STATIC_CHECK
+  create public .
+
+public section.
+
+  types:
+    BEGIN OF ts_msg1_4,
+             msgv1 TYPE symsgv,
+             msgv2 TYPE symsgv,
+             msgv3 TYPE symsgv,
+             msgv4 TYPE symsgv,
+           END OF ts_msg1_4 .
+
+*"* public components of class ZCX_CAP_ADF
+*"* do not include other source files here!!!
+  constants SY_MSG_TXT type SOTR_CONC value '005056AF02281ED4B8C4CCF1005CB8BD' ##NO_TEXT.
+  constants ZCX_CAP_ADF type SOTR_CONC value '00505689E3F31ED892ABBA09EAEF45AC' ##NO_TEXT.
+  constants GC_MSGID_GENERIC type SY-MSGID value 'ZCAP_ADF' ##NO_TEXT.
+  constants GC_MSGNO_GENERIC type SY-MSGNO value 003 ##NO_TEXT.
+  data MV_HAS_LONG_TEXT type XFELD .
+  data MV_MSGID type SY-MSGID .
+  data MV_MSGNO type SY-MSGNO .
+  data MV_MSGTY type SY-MSGTY .
+  data MV_MSGV1 type SY-MSGV1 .
+  data MV_MSGV2 type SY-MSGV2 .
+  data MV_MSGV3 type SY-MSGV3 .
+  data MV_MSGV4 type SY-MSGV4 .
+  data MV_MSGV5 type SYMSGV .
+  data MV_MSGV6 type SYMSGV .
+  data MV_MSGV7 type SYMSGV .
+  data MV_MSGV8 type SYMSGV .
+  data MV_MSGV9 type SYMSGV .
+  data MV_MSG_TXT type BAPI_MSG .
+
+  methods CONSTRUCTOR
+    importing
+      !TEXTID like TEXTID optional
+      !PREVIOUS like PREVIOUS optional
+      !MV_HAS_LONG_TEXT type XFELD optional
+      !MV_MSGID type SY-MSGID optional
+      !MV_MSGNO type SY-MSGNO optional
+      !MV_MSGTY type SY-MSGTY optional
+      !MV_MSGV1 type SY-MSGV1 optional
+      !MV_MSGV2 type SY-MSGV2 optional
+      !MV_MSGV3 type SY-MSGV3 optional
+      !MV_MSGV4 type SY-MSGV4 optional
+      !MV_MSGV5 type SYMSGV optional
+      !MV_MSGV6 type SYMSGV optional
+      !MV_MSGV7 type SYMSGV optional
+      !MV_MSGV8 type SYMSGV optional
+      !MV_MSGV9 type SYMSGV optional
+      !MV_MSG_TXT type BAPI_MSG optional .
+  class-methods CONV_TEXT_TO_MSG1_4
+    importing
+      !IV_TEXT type BAPI_MSG
+    exporting
+      !EV_MSGV1 type SYMSGV
+      !EV_MSGV2 type SYMSGV
+      !EV_MSGV3 type SYMSGV
+      !EV_MSGV4 type SYMSGV .
+  class-methods CONV_TO_MSGTY
+    importing
+      !IV_MSGTY type SY-MSGTY
+    returning
+      value(RV_RESULT) type SY-MSGTY .
+
+  methods IF_MESSAGE~GET_TEXT
+    redefinition .
+  methods IF_MESSAGE~GET_LONGTEXT
+    redefinition .
+protected section.
+*"* protected components of class ZCX_CAP_ADF
+*"* do not include other source files here!!!
+private section.
+*"* private components of class ZCX_CAP_ADF
+*"* do not include other source files here!!!
+ENDCLASS.
+
+
+
+CLASS ZCX_CAP_ADF IMPLEMENTATION.
+
+
+  method CONSTRUCTOR.
+CALL METHOD SUPER->CONSTRUCTOR
+EXPORTING
+TEXTID = TEXTID
+PREVIOUS = PREVIOUS
+.
+ IF textid IS INITIAL.
+   me->textid = ZCX_CAP_ADF .
+ ENDIF.
+me->MV_HAS_LONG_TEXT = MV_HAS_LONG_TEXT .
+me->MV_MSGID = MV_MSGID .
+me->MV_MSGNO = MV_MSGNO .
+me->MV_MSGTY = MV_MSGTY .
+me->MV_MSGV1 = MV_MSGV1 .
+me->MV_MSGV2 = MV_MSGV2 .
+me->MV_MSGV3 = MV_MSGV3 .
+me->MV_MSGV4 = MV_MSGV4 .
+me->MV_MSGV5 = MV_MSGV5 .
+me->MV_MSGV6 = MV_MSGV6 .
+me->MV_MSGV7 = MV_MSGV7 .
+me->MV_MSGV8 = MV_MSGV8 .
+me->MV_MSGV9 = MV_MSGV9 .
+me->MV_MSG_TXT = MV_MSG_TXT .
+  endmethod.
+
+
+  METHOD conv_text_to_msg1_4.
+    DATA:
+      ls_msg1_4    TYPE ts_msg1_4
+    .
+    CLEAR:
+      ev_msgv1,
+      ev_msgv2,
+      ev_msgv3,
+      ev_msgv4
+    .
+    ls_msg1_4 = iv_text.
+    ev_msgv1 = ls_msg1_4-msgv1.
+    ev_msgv2 = ls_msg1_4-msgv2.
+    ev_msgv3 = ls_msg1_4-msgv3.
+    ev_msgv4 = ls_msg1_4-msgv4.
+  ENDMETHOD.
+
+
+  METHOD conv_to_msgty.
+    CASE iv_msgty.
+      WHEN 'A'
+        OR 'X'
+        OR 'E'.
+        rv_result = 'E'.
+      WHEN 'W'.
+        rv_result = 'W'.
+
+      WHEN OTHERS.
+        rv_result = 'I'.
+    ENDCASE.
+  ENDMETHOD.
+
+
+  METHOD if_message~get_longtext.
+    DATA:
+      lt_line TYPE STANDARD TABLE OF bapitgb, "tline,
+      lv_msgv TYPE symsgv,
+      ls_ret  TYPE bapiret2
+      .
+    result = me->mv_msg_txt.
+    IF me->mv_has_long_text <> abap_true.
+      RETURN.
+    ENDIF.
+    "lv_object = me->mv_msgid && me->mv_msgno.
+    CALL FUNCTION 'BAPI_MESSAGE_GETDETAIL'
+      EXPORTING
+        id         = me->mv_msgid
+        number     = me->mv_msgno
+*       LANGUAGE   = SY-LANGU
+        textformat = 'ASC'
+*       LINKPATTERN        =
+*       MESSAGE_V1 =
+*       MESSAGE_V2 =
+*       MESSAGE_V3 =
+*       MESSAGE_V4 =
+*       LANGUAGE_ISO       =
+*       LINE_SIZE  =
+      IMPORTING
+*       MESSAGE    =
+        return     = ls_ret
+      TABLES
+        text       = lt_line[].
+    IF ls_ret-type CA 'AEX'
+      OR lt_line[] IS INITIAL.
+      RETURN.
+    ENDIF.
+    DATA(lv_msg_count) = 5.
+    LOOP AT lt_line[] ASSIGNING FIELD-SYMBOL(<fs_line>).
+      WHILE lv_msg_count < 10.
+        CASE lv_msg_count.
+          WHEN 5.
+            lv_msgv = me->mv_msgv5.
+          WHEN 6.
+            lv_msgv = me->mv_msgv6.
+          WHEN 7.
+            lv_msgv = me->mv_msgv7.
+          WHEN 8.
+            lv_msgv = me->mv_msgv8.
+          WHEN 9.
+            lv_msgv = me->mv_msgv9.
+          WHEN OTHERS.
+            CLEAR lv_msgv.
+        ENDCASE.
+        REPLACE FIRST OCCURRENCE OF '&' IN <fs_line>-line WITH lv_msgv.
+        CASE sy-subrc.
+          WHEN 0
+            OR 2.
+            lv_msg_count = lv_msg_count + 1.
+          WHEN OTHERS.
+            EXIT.
+        ENDCASE.
+      ENDWHILE.
+      result = |{ result } { <fs_line>-line }|.
+    ENDLOOP.
+  ENDMETHOD.
+
+
+  METHOD if_message~get_text.
+    result = super->if_message~get_text( ).
+    IF me->textid = zcx_cap_adf
+      AND me->mv_msg_txt IS NOT INITIAL.
+      result = me->mv_msg_txt.
+    ENDIF.
+  ENDMETHOD.
+ENDCLASS.

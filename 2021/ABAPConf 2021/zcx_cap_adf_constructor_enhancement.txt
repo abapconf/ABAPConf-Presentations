@@ -1,0 +1,31 @@
+ENHANCEMENT 1  ZCX_CAP_ADF.    "active version
+  IF me->textid = zcx_cap_adf
+    AND sy-msgid IS NOT INITIAL.
+    me->mv_msgty = conv_to_msgty( sy-msgty ).
+    MESSAGE ID sy-msgid TYPE 'S'
+      NUMBER sy-msgno WITH
+      sy-msgv1 sy-msgv2
+      sy-msgv3 sy-msgv4
+      INTO me->mv_msg_txt.
+    me->mv_msgid = sy-msgid.
+    me->mv_msgno = sy-msgno.
+    me->mv_msgv1 = sy-msgv1.
+    me->mv_msgv2 = sy-msgv2.
+    me->mv_msgv3 = sy-msgv3.
+    me->mv_msgv4 = sy-msgv4.
+  ELSEIF  me->textid = sy_msg_txt
+    AND me->mv_msg_txt IS NOT INITIAL.
+    conv_text_to_msg1_4(
+      EXPORTING
+        iv_text = me->mv_msg_txt
+      IMPORTING
+        ev_msgv1 = me->mv_msgv1
+        ev_msgv2 = me->mv_msgv2
+        ev_msgv3 = me->mv_msgv3
+        ev_msgv4 = me->mv_msgv4
+    ).
+    me->mv_msgty = conv_to_msgty( me->mv_msgty ).
+    me->mv_msgid = gc_msgid_generic.
+    me->mv_msgno = gc_msgno_generic.
+  ENDIF.
+ENDENHANCEMENT.

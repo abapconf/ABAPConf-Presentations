@@ -1,0 +1,82 @@
+REPORT  ZCX_CA_ADF_EXAMPLE.
+
+CLASS lcl_rep DEFINITION FINAL.
+  PUBLIC SECTION.
+    METHODS:
+      start_of_selection
+    .
+
+  PRIVATE SECTION.
+     DATA:
+      mv_with_long_text TYPE xfeld
+    .
+    METHODS:
+      first_call
+        RAISING
+          zcx_cap_adf,
+
+      second_call
+        RAISING
+          zcx_cap_adf
+    .
+ENDCLASS.  "lcl_rep definitio
+
+DATA:
+  go_rep TYPE REF TO lcl_rep.
+
+PARAMETERS:
+  p_debug TYPE xfeld AS CHECKBOX DEFAULT abap_true,
+  p_longt TYPE xfeld AS CHECKBOX DEFAULT abap_false
+.
+
+LOAD-OF-PROGRAM.
+  go_rep = NEW #( ).
+
+START-OF-SELECTION.
+  go_rep->start_of_selection( ).
+*** end of report ***
+
+CLASS lcl_rep IMPLEMENTATION.
+  METHOD start_of_selection.
+    TRY.
+        IF p_debug = abap_true.
+          BREAK-POINT.
+        ENDIF.
+        me->mv_with_long_text = p_longt.
+        me->first_call( ).
+
+      CATCH zcx_cap_adf INTO DATA(lx_msg).
+        IF me->mv_with_long_text = abap_true.
+          DATA(lv_long_text) = CONV text_512( lx_msg->if_message~get_longtext( ) ).
+          cl_demo_output=>display( lv_long_text ).
+        ELSE.
+          MESSAGE lx_msg TYPE 'I'.
+        ENDIF.
+
+    ENDTRY.
+  ENDMETHOD.  "start_of_selection
+
+  METHOD first_call.
+    "any static exception (CX_STATIC_CHECK and all inheriting ones)
+    "raised inside second_call method will be propagated through
+    "first_call method and raised higher inside method that has
+    "called first_call
+    me->second_call( ).
+  ENDMETHOD.  "first_call
+
+  METHOD second_call.
+    MESSAGE w100(ZCAP_ADF)
+      WITH 100 'ZCAP_ADF' 'second_call'
+      INTO DATA(lv_msg).
+    IF me->mv_with_long_text = abap_true.
+      RAISE EXCEPTION TYPE zcx_cap_adf
+        EXPORTING
+          mv_has_long_text = abap_true
+          mv_msgv5         = CONV symsgv( sy-uname )
+          mv_msgv6         = CONV symsgv( sy-datum )
+          mv_msgv7         = CONV symsgv( sy-uzeit ).
+    ELSE.
+      RAISE EXCEPTION TYPE zcx_cap_adf.
+    ENDIF.
+  ENDMETHOD.  "second_call
+ENDCLASS.  "lcl_rep implementation
